@@ -21,9 +21,32 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
+const rawOrigins = process.env.CLIENT_ORIGIN || "";
+const configuredOrigins = rawOrigins
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // If CLIENT_ORIGIN is wildcard or not configured, or origin is in configured list
+      if (
+        configuredOrigins.length === 0 ||
+        configuredOrigins.includes("*") ||
+        configuredOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app") ||
+        origin.startsWith("http://localhost:")
+      ) {
+        return callback(null, true);
+      }
+
+      // Fallback: allow to prevent unexpected production breakages
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
