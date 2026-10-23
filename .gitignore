@@ -23,3 +23,7 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Vercel
+.vercel/
+*.tmp.now
